@@ -6,16 +6,19 @@
         <style>
             * {font-family:verdana}
             span.interval-option {margin:4px 10px}
-            div#interval-display {font-size:200px;}
+            div#interval-display {font-size:200px;text-align:center}
+            div#controls {margin-top:15px; margin-bottom:15px}
+            div#controls > span { display:inline-block;margin-left:15px;margin-right:15px}
         </style>
     </head>
     <body>
         <div id="interval-list"></div>
         <div id="controls">
-                <button id="start-button">Start</button>
-                <button id="stop-button">Stop</button>
-                <span class="control-title">Time: </span>
+            <span><button type="button" id="start-button">Start</button></span>
+            <span><button type="button" id="stop-button">Stop</button></span>
+            <span class="control-title">Time: 
                 <input type="text" name="time-interval" id="time-interval" value="5"/>
+            </span>
             </div>
             <div id="interval-display"></div>
             <script>
@@ -41,9 +44,10 @@
     });
 
     function chooseNext() {
-        var idx = _.random(intervals.length-1);
-        var next_interval = intervals[idx];
-        $("#interval-display").text(next_interval);
+        var next_dir = _.random(1) ? "&uarr;" : "&darr;";
+        var next_interval = intervals.length ?
+            intervals[_.random(intervals.length-1)] + " " + next_dir: "";
+        $("#interval-display").html(next_interval);
     }
 
     $("#start-button").click(function(){
