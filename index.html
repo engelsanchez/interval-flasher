@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="js/jquery-2.1.3.min.js"></script>
+        <script src="js/underscore-min.js"></script>
+        <style>
+            * {font-family:verdana}
+            span.interval-option {margin:4px 10px}
+            div#interval-display {font-size:200px;}
+        </style>
+    </head>
+    <body>
+        <div id="interval-list"></div>
+        <div id="controls">
+                <button id="start-button">Start</button>
+                <button id="stop-button">Stop</button>
+                <span class="control-title">Time: </span>
+                <input type="text" name="time-interval" id="time-interval" value="5"/>
+            </div>
+            <div id="interval-display"></div>
+            <script>
+    var timer = null;
+    var intervals = ["m2", "M2", "m3", "M3", "P4", "A4", "d5", "P5", "m6", "M6",
+        "m7", "M7", "P8"];
+    var intervalListDiv = $("#interval-list");
+    intervals.forEach(function(interval){
+        var idiv = $("<span>").addClass("interval-option");
+        idiv.append($("<span>").addClass("interval-name").text(interval));
+        idiv.append($("<input>")
+                .addClass("interval-option").attr("type", "checkbox")
+                .change(function(){
+                    var interval = $("span.interval-name", $(this).parent()).text();
+                    if ($(this).is(":checked")) {
+                        intervals.push(interval);
+                    } else {
+                        intervals = _.without(intervals, interval);
+                    }
+                })
+                .prop("checked", "checked"));
+        idiv.appendTo(intervalListDiv);
+    });
+
+    function chooseNext() {
+        var idx = _.random(intervals.length-1);
+        var next_interval = intervals[idx];
+        $("#interval-display").text(next_interval);
+    }
+
+    $("#start-button").click(function(){
+        if (!timer) {
+            var timeInterval = +$("#time-interval").val();
+            chooseNext();
+            timer = setInterval(chooseNext, timeInterval * 1000);
+        }
+    });
+    $("#stop-button").click(function(){
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+    });
+            
+        </script>
+    </body>
+</html>
