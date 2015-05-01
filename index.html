@@ -18,12 +18,14 @@
                 -o-transition: width .1s ease;
                 transition: width .1s ease;
            }
+            input#time-interval{text-align:right}
         </style>
     </head>
     <body>
         <div class="container" role="main">
             <h1>Interval Flasher</h1>
             <div id="interval-list"></div>
+            <form class="form-horizontal">
                 <div id="controls" class="input-group">
                     <span class="input-group-btn">
                         <button type="button" class="btn  btn-default"
@@ -31,11 +33,11 @@
                         <button type="button" class="btn  btn-default"
                                               id="stop-button">Stop</button>
                     </span>
-                    <span class="input-group-addon" id="basic-addon2">Flash time:</span>
                     <input class="form-control" type="text" name="time-interval" id="time-interval"
-                    value="5" aria-describedby="basic-addon2"/>
-                        <span class="input-group-addon" id="basic-addon2">seconds</span>
+                                                                                 value="5" aria-describedby="basic-addon2"/>
+                    <span class="input-group-addon" id="basic-addon2">secs</span>
                 </div>
+            </form>
             <div class="progress">
                 <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;"></div>
             </div>
@@ -43,6 +45,11 @@
             <div id="debug"></div>
         </div>
 
+        <!--
+        <audio id="tick">
+            <source src="audio/metronome-tick.mp3" type="audio/mpeg">
+        </audio>
+        -->
             <script src="js/jquery-2.1.3.min.js"></script>
             <script src="js/underscore-min.js"></script>
             <script>
@@ -69,6 +76,14 @@
         lbl.appendTo(intervalListDiv);
     });
 
+    $("#time-interval").focus(function() {
+        this.select()
+    });
+    var updateInterval = 100;
+    var timeInterval, timeLeft;
+    var pbar = $(".progress-bar");
+    var tick = document.getElementById("tick");
+
     function chooseNext() {
         var next_dir = _.random(1) ? "&uarr;" : "&darr;";
         var next_interval = intervals.length ?
@@ -80,12 +95,9 @@
         timeLeft = timeInterval;
     }
 
-    var updateInterval = 100;
-    var timeInterval, timeLeft;
-
     function showProgress() {
         var perc = timeLeft / timeInterval * 100;
-        $(".progress-bar").css("width", perc + "%").attr("aria-valuenow", perc);;
+        pbar.css("width", perc + "%").attr("aria-valuenow", perc);
     }
 
     function onProgress() {
@@ -93,22 +105,23 @@
         showProgress();
     }
 
-    $("#start-button").click(function(){
-        if (!timer) {
-            chooseNext();
-            showProgress();
-            timer = setInterval(chooseNext, timeInterval);
-            progressTimer = setInterval(onProgress, updateInterval);
-        }
-    });
-    $("#stop-button").click(function(){
+    function stopTimer() {
         if (timer) {
             clearInterval(timer);
             clearInterval(progressTimer);
             timer = null;
             progressTimer = null;
         }
+    }
+
+    $("#start-button").click(function(){
+        stopTimer();
+        chooseNext();
+        showProgress();
+        timer = setInterval(chooseNext, timeInterval);
+        progressTimer = setInterval(onProgress, updateInterval);
     });
+    $("#stop-button").click(stopTimer);
             
         </script>
     </body>
