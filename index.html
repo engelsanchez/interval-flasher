@@ -1,46 +1,72 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
-        <script src="js/jquery-2.1.3.min.js"></script>
-        <script src="js/underscore-min.js"></script>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Interval Flasher</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet">
         <style>
             * {font-family:verdana}
-            span.interval-option {margin:4px 10px}
+            #interval-list label {margin:4px 10px}
             div#interval-display {font-size:200px;text-align:center}
             div#controls {margin-top:15px; margin-bottom:15px}
-            div#controls > span { display:inline-block;margin-left:15px;margin-right:15px}
+            .progress-bar {
+                -webkit-transition: width .1s ease;
+                -moz-transition: width .1s ease;
+                -ms-transition: width .1s ease;
+                -o-transition: width .1s ease;
+                transition: width .1s ease;
+           }
         </style>
     </head>
     <body>
-        <div id="interval-list"></div>
-        <div id="controls">
-            <span><button type="button" id="start-button">Start</button></span>
-            <span><button type="button" id="stop-button">Stop</button></span>
-            <span class="control-title">Time: 
-                <input type="text" name="time-interval" id="time-interval" value="5"/>
-            </span>
+        <div class="container" role="main">
+            <h1>Interval Flasher</h1>
+            <div id="interval-list"></div>
+                <div id="controls" class="input-group">
+                    <span class="input-group-btn">
+                        <button type="button" class="btn  btn-default"
+                                              id="start-button">Start</button>
+                        <button type="button" class="btn  btn-default"
+                                              id="stop-button">Stop</button>
+                    </span>
+                    <span class="input-group-addon" id="basic-addon2">Flash time:</span>
+                    <input class="form-control" type="text" name="time-interval" id="time-interval"
+                    value="5" aria-describedby="basic-addon2"/>
+                        <span class="input-group-addon" id="basic-addon2">seconds</span>
+                </div>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;"></div>
             </div>
             <div id="interval-display"></div>
+            <div id="debug"></div>
+        </div>
+
+            <script src="js/jquery-2.1.3.min.js"></script>
+            <script src="js/underscore-min.js"></script>
             <script>
     var timer = null;
+    var progressTimer = null;
     var intervals = ["m2", "M2", "m3", "M3", "P4", "A4", "d5", "P5", "m6", "M6",
         "m7", "M7", "P8"];
     var intervalListDiv = $("#interval-list");
     intervals.forEach(function(interval){
-        var idiv = $("<span>").addClass("interval-option");
-        idiv.append($("<span>").addClass("interval-name").text(interval));
-        idiv.append($("<input>")
-                .addClass("interval-option").attr("type", "checkbox")
+        var lbl = $("<label>").addClass("checkbox-inline");
+        lbl.append($("<input>").addClass("interval-option")
+                .attr("type", "checkbox")
+                .attr("value", interval)
                 .change(function(){
-                    var interval = $("span.interval-name", $(this).parent()).text();
+                    var interval = $(this).val();
                     if ($(this).is(":checked")) {
                         intervals.push(interval);
                     } else {
                         intervals = _.without(intervals, interval);
                     }
                 })
-                .prop("checked", "checked"));
-        idiv.appendTo(intervalListDiv);
+                .prop("checked", "checked"))
+            .append(interval);
+        lbl.appendTo(intervalListDiv);
     });
 
     function chooseNext() {
@@ -48,19 +74,39 @@
         var next_interval = intervals.length ?
             intervals[_.random(intervals.length-1)] + " " + next_dir: "";
         $("#interval-display").html(next_interval);
+        
+        /* Start timer */
+        timeInterval = +$("#time-interval").val() * 1000;
+        timeLeft = timeInterval;
+    }
+
+    var updateInterval = 100;
+    var timeInterval, timeLeft;
+
+    function showProgress() {
+        var perc = timeLeft / timeInterval * 100;
+        $(".progress-bar").css("width", perc + "%").attr("aria-valuenow", perc);;
+    }
+
+    function onProgress() {
+        timeLeft = timeLeft - updateInterval;
+        showProgress();
     }
 
     $("#start-button").click(function(){
         if (!timer) {
-            var timeInterval = +$("#time-interval").val();
             chooseNext();
-            timer = setInterval(chooseNext, timeInterval * 1000);
+            showProgress();
+            timer = setInterval(chooseNext, timeInterval);
+            progressTimer = setInterval(onProgress, updateInterval);
         }
     });
     $("#stop-button").click(function(){
         if (timer) {
             clearInterval(timer);
+            clearInterval(progressTimer);
             timer = null;
+            progressTimer = null;
         }
     });
             
